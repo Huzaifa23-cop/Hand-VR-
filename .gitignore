@@ -1,0 +1,15 @@
+# Build outputs and model downloaded during CI
+android/.gradle/
+android/.idea/
+android/**/build/
+android/local.properties
+android/app/src/main/assets/*.task
+.gradle/
+__pycache__/
+.pytest_cache/
+*.pyc
+dist/
+build/
+*.spec
+*.jsonl
+.DS_Store

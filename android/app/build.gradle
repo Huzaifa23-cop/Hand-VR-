@@ -1,0 +1,53 @@
+plugins { id 'com.android.application' }
+
+android {
+    namespace 'dev.handlink.mobile'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'dev.handlink.mobile'
+        minSdk 26
+        targetSdk 35
+        versionCode 1
+        versionName '0.1.0'
+    }
+    buildTypes {
+        release { minifyEnabled false }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    androidResources { noCompress 'task' }
+}
+
+dependencies {
+    implementation 'androidx.camera:camera-core:1.4.2'
+    implementation 'androidx.camera:camera-camera2:1.4.2'
+    implementation 'androidx.camera:camera-lifecycle:1.4.2'
+    implementation 'androidx.camera:camera-view:1.4.2'
+    implementation 'androidx.core:core:1.15.0'
+    implementation 'androidx.activity:activity:1.9.3'
+    implementation 'com.google.mediapipe:tasks-vision:0.10.21'
+}
+
+// Ensures Android Studio builds work as well as CI builds. Model is bundled in
+// the APK; after install, neither inference nor transport needs Internet.
+tasks.register('prepareHandModel') {
+    doLast {
+        def file = file('src/main/assets/hand_landmarker.task')
+        if (!file.exists() || file.length() == 0) {
+            file.parentFile.mkdirs()
+            def url = new URL('https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task')
+            println 'Downloading MediaPipe model from Google AI Edge...'
+            url.openConnection().with { conn ->
+                conn.connectTimeout = 30000
+                conn.readTimeout = 120000
+                conn.inputStream.withCloseable { input ->
+                    file.withOutputStream { output -> output << input }
+                }
+            }
+        }
+    }
+}
+tasks.named('preBuild') { dependsOn 'prepareHandModel' }
